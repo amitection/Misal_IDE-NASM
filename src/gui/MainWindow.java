@@ -1,0 +1,400 @@
+
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JTextArea;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.Element;
+
+/**
+ *
+ * @author amit
+ */
+public class MainWindow extends JFrame{
+    private JTextArea line_number, textArea;
+    private JScrollPane textAreaScrollPane;
+    private JMenuBar JMB;
+    private JMenu File;
+    private JMenu Edit;
+    private JMenu View;
+    private JMenu RunMenu;
+    private JMenu DebugMenu;
+    
+    
+    private boolean changed = false;
+    private String currentFile;
+    private String fileName = "Untitled";
+  
+    private JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
+	/*File choosers provide a GUI for navigating the file system, and then either choosing 
+	 	a file or directory from a list, or entering the name of a file or directory.
+	 	To display a file chooser, you usually use the JFileChooser API to show a modal dialog*/
+    MainWindow()
+    {
+     createAndShowGUI();   
+    }    
+    
+    private void createAndShowGUI()
+    {
+        setTitle("Misal IDE 1.0 - "+fileName);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        
+        JMB = new JMenuBar();
+        setJMenuBar(JMB);
+        File = new JMenu("File");
+        Edit = new JMenu("Edit");
+        View = new JMenu("View");
+        RunMenu = new JMenu("Run");
+        DebugMenu = new JMenu("Debug");
+        JMB.add(File);
+        JMB.add(Edit);
+        JMB.add(View);
+        JMB.add(RunMenu);
+        JMB.add(DebugMenu);
+        
+        File.add(New).setText("New");
+        File.add(Open).setText("Open");
+        File.add(Save).setText("Save");
+        File.add(SaveAs).setText("SaveAs");
+        File.add(Exit).setText("Exit");
+        
+        Edit.add(Cut).setText("Cut");
+        Edit.add(Copy).setText("Copy");
+        Edit.add(Paste).setText("Paste");
+        Edit.add(Find).setText("Find");
+        
+        RunMenu.add(CompileProject).setText("Compile");
+        RunMenu.add(ExecProject).setText("Execute");
+        
+        DebugMenu.add(StartDebug).setText("Start");
+        DebugMenu.add(SetBP).setText("Set Breakpoint");
+        DebugMenu.add(ContinueBP).setText("Continue");
+        DebugMenu.add(RemBP).setText("Remove BreakPoint");
+        DebugMenu.add(RemAllBP).setText("Remove All BreakPoints");
+        
+        textAreaScrollPane = new JScrollPane();
+        
+        line_number = new JTextArea("1");
+        line_number.setBackground(Color.GRAY);
+        line_number.setForeground(Color.red);
+        line_number.setFont(new Font(Font.MONOSPACED,Font.CENTER_BASELINE,15));
+        
+        this.add(line_number);
+        line_number.setEditable(false);
+        
+        textArea = new JTextArea();
+        textArea.setBackground(Color.darkGray);
+        textArea.setCaretColor(Color.BLACK);
+        textArea.setForeground(Color.WHITE);
+        textArea.setFont(new Font(Font.MONOSPACED,Font.PLAIN,15));
+        textArea.getDocument().addDocumentListener(new DocumentListener(){
+        
+            public String getText(){
+            
+                int caretPosition = textArea.getDocument().getLength();
+                Element root = textArea.getDocument().getDefaultRootElement();
+                String text = "1" + System.getProperty("line.separator");
+            
+            for(int i = 2; i < root.getElementIndex( caretPosition ) + 2; i++)
+            {
+		text += i + System.getProperty("line.separator");
+            }
+             return text;
+            }
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                line_number.setText(getText());
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                line_number.setText(getText());   
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                line_number.setText(getText());
+            }
+            
+        });
+        
+        textAreaScrollPane.getViewport().add(textArea,BorderLayout.CENTER);
+        textAreaScrollPane.setRowHeaderView(line_number);
+        textAreaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        textAreaScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        
+        add(textAreaScrollPane);
+        pack();
+        setSize(700,500);
+        
+        Save.setEnabled(false);
+        SaveAs.setEnabled(false);
+        textArea.addKeyListener(k1);
+        
+    }
+    
+
+//--------------_File_-------------
+    
+    Action New = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                   createNewFile(); 
+                }
+    };
+    
+    Action Open = new AbstractAction(){
+		public void actionPerformed(ActionEvent e)
+                {
+                    saveOld();
+                    if(dialog.showOpenDialog(null)==JFileChooser.APPROVE_OPTION)
+                    {   
+                        fileName = dialog.getSelectedFile().getName();
+                        readInFile(dialog.getSelectedFile().getAbsolutePath());  
+		//passing the address(path) of the chosen file to readInFile Method.
+                    }
+                    SaveAs.setEnabled(true);
+            }
+    };
+    
+    Action Save = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    if(!fileName.equals("Untitled"))
+                        saveFile(currentFile);
+                    else
+                        saveFileAs();
+                    //If current File is not equal to untitled then use SaveAs
+                }
+    };
+    
+    Action SaveAs = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    saveFileAs();
+                    
+                }
+    };
+    
+    Action Exit = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    saveOld();  
+                    System.exit(0);
+                    
+                }
+    };
+    
+    //-----------_END-File_-----------
+    
+    
+    //--------_Edit_---------------
+    Action Cut = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                }
+    };
+    
+    Action Copy = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                }
+    };
+    
+    Action Paste = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                }
+    };
+    
+    Action Find = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                }
+    };
+    
+    //-----------------_END Edit_-----------
+    
+    //----------------_Run_----------------
+    Action CompileProject = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                    
+                }
+    };
+    
+    Action ExecProject = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                }
+    };
+
+    //----------------_End_Run_--------------
+    
+    //----------------_Debug_----------------
+    Action StartDebug = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                    
+                }
+    };
+    
+    Action SetBP = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                }
+    };
+    
+    Action ContinueBP = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                }
+    };
+    
+    Action RemBP = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                }
+    };
+    
+    Action RemAllBP = new AbstractAction(){
+		public void actionPerformed(ActionEvent e){
+                    
+                }
+    };
+
+    //----------------_End_Debug_--------------
+    private KeyListener k1 = new KeyAdapter()
+	{       
+		public void keyPressed(KeyEvent e)
+		{       
+                        
+			changed = true;
+			Save.setEnabled(true);    //----MADE----
+			SaveAs.setEnabled(true);
+                        
+                        setTitle("Misal IDE 1.0 - *"+fileName);
+                }		
+	};
+	
+    void createNewFile()
+    {
+        if(changed == true)
+        {
+            saveFileAs();
+            changed = false;
+            fileName = "Untitled";
+            setTitle("Misal IDE 1.0 - "+fileName);
+            textArea.setText(null);
+	}
+	else
+	{
+            changed=false;    
+            fileName = "Untitled";
+            setTitle("Misal IDE 1.0 - "+fileName);
+            textArea.setText(null);
+	}
+
+    }
+    
+    private void saveFileAs()
+	{
+		if(dialog.showSaveDialog(null)==JFileChooser.APPROVE_OPTION)
+			saveFile(dialog.getSelectedFile().getAbsolutePath(),
+                                            dialog.getSelectedFile().getName());
+		
+	}
+    
+    private void saveFile(String filePath)
+	{
+		try{
+			FileWriter w = new FileWriter(filePath);
+			textArea.write(w);
+			w.close();
+                        currentFile = filePath;
+                        
+			setTitle("Misal IDE 1.0 - "+fileName);
+			
+			changed = false;
+			Save.setEnabled(false);
+		}
+		catch(IOException e)
+		{
+			//no exception handling routine
+		}
+		
+	}
+    //Overloading Save file Method
+    private void saveFile(String filePath,String fName)
+	{
+		try{
+			FileWriter w = new FileWriter(filePath);
+			textArea.write(w);
+			w.close();
+                        currentFile = filePath;
+                        
+			setTitle("Misal IDE 1.0 - "+fName);
+                        fileName = fName;
+			
+			changed = false;
+			Save.setEnabled(false);
+		}
+		catch(IOException e)
+		{
+			//no exception handling routine
+		}
+		
+	}
+    
+    
+    private void saveOld(){
+		if(changed){
+			if(JOptionPane.showConfirmDialog(this, "Would Like To Save " +currentFile+
+                                " ?","Save",JOptionPane.YES_NO_CANCEL_OPTION)==JOptionPane.YES_OPTION)
+				saveFile(currentFile);
+					}
+	}
+    
+    private void readInFile(String filePath){
+		try{
+			FileReader r = new FileReader(filePath);
+			textArea.read(r,null);
+			//area is object of JTextArea. It is a multiline plain text area.
+			r.close();
+			currentFile = filePath;
+			//currentFile variable is of String type and stores the name of the text File
+			//it is used for Setting the name on Title Bar.
+			setTitle("Misal IDE 1.0 - "+fileName);
+			changed = false;	
+		}
+		catch(IOException e)
+		{
+			Toolkit.getDefaultToolkit().beep();
+			//Beep signal emitted on reciept of and error
+			JOptionPane.showMessageDialog(this,"Editor Cant Find The File Called "+filePath);
+			
+		}
+	}
+    
+    public static void main(String args[])
+    {
+        try {
+            String cn = UIManager.getSystemLookAndFeelClassName();
+            UIManager.setLookAndFeel(cn); 
+        } catch (Exception cnf) {
+        }
+        MainWindow o = new MainWindow();
+        o.setVisible(true);
+    }
+    
+}
