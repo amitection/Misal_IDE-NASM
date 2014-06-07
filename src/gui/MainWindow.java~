@@ -1,12 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package gui;
-
-import features.JFontChooser;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -19,14 +12,9 @@ import java.awt.event.KeyListener;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import static javafx.scene.text.Font.getFontNames;
 
 import javax.swing.*;
 import javax.swing.JFrame;
-import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
-import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -50,10 +38,7 @@ public class MainWindow extends JFrame{
     private boolean changed = false;
     private String currentFile;
     private String fileName = "Untitled";
-    private String currentFont = Font.MONOSPACED;
-    List<String> font_list;
-    
-            
+  
     private JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
 	/*File choosers provide a GUI for navigating the file system, and then either choosing 
 	 	a file or directory from a list, or entering the name of a file or directory.
@@ -65,10 +50,8 @@ public class MainWindow extends JFrame{
     
     private void createAndShowGUI()
     {
-        
         setTitle("Misal IDE 1.0 - "+fileName);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        font_list = getFontNames();
         
         JMB = new JMenuBar();
         setJMenuBar(JMB);
@@ -93,7 +76,6 @@ public class MainWindow extends JFrame{
         Edit.add(Copy).setText("Copy");
         Edit.add(Paste).setText("Paste");
         Edit.add(Find).setText("Find");
-        Edit.add(ChangeFont).setText("ChangeFont");
         
         RunMenu.add(CompileProject).setText("Compile");
         RunMenu.add(ExecProject).setText("Execute");
@@ -109,14 +91,14 @@ public class MainWindow extends JFrame{
         line_number = new JTextArea("1");
         line_number.setBackground(Color.GRAY);
         line_number.setForeground(Color.red);
-        line_number.setFont(new Font(currentFont,Font.CENTER_BASELINE,15));
+        line_number.setFont(new Font(Font.MONOSPACED,Font.CENTER_BASELINE,15));
         
         this.add(line_number);
         line_number.setEditable(false);
         
         textArea = new JTextArea();
         textArea.setBackground(Color.darkGray);
-        textArea.setCaretColor(Color.GREEN);
+        textArea.setCaretColor(Color.BLACK);
         textArea.setForeground(Color.WHITE);
         textArea.setFont(new Font(Font.MONOSPACED,Font.PLAIN,15));
         textArea.getDocument().addDocumentListener(new DocumentListener(){
@@ -181,8 +163,7 @@ public class MainWindow extends JFrame{
                     if(dialog.showOpenDialog(null)==JFileChooser.APPROVE_OPTION)
                     {   
                         fileName = dialog.getSelectedFile().getName();
-                        currentFile = dialog.getSelectedFile().getAbsolutePath();
-                        readInFile(currentFile);  
+                        readInFile(dialog.getSelectedFile().getAbsolutePath());  
 		//passing the address(path) of the chosen file to readInFile Method.
                     }
                     SaveAs.setEnabled(true);
@@ -241,22 +222,7 @@ public class MainWindow extends JFrame{
                     
                 }
     };
-        
-        Action ChangeFont = new AbstractAction(){
-		public void actionPerformed(ActionEvent e){
-                  
-                    JFontChooser fd = new JFontChooser(textArea.getFont());
-                    fd.showDialog();
-                    
-                    if(fd.getReturnStatus() == fd.RET_OK){
-                           textArea.setFont(fd.getFont());
-                           line_number.setFont(fd.getFont());
-                         }
-                    fd.dispose();
-                    
-                }
-    };
-
+    
     //-----------------_END Edit_-----------
     
     //----------------_Run_----------------
@@ -324,9 +290,8 @@ public class MainWindow extends JFrame{
     void createNewFile()
     {
         if(changed == true)
-        {   
-            saveOld();
-            //saveFileAs();
+        {
+            saveFileAs();
             changed = false;
             fileName = "Untitled";
             setTitle("Misal IDE 1.0 - "+fileName);
@@ -394,16 +359,9 @@ public class MainWindow extends JFrame{
     
     private void saveOld(){
 		if(changed){
-               int i = JOptionPane.showConfirmDialog(this, "Would Like To Save " +currentFile+
-                                " ?","Save",JOptionPane.YES_NO_CANCEL_OPTION);
-               
-			if(i==JOptionPane.YES_OPTION)
-				saveFileAs();
-                        //elseif(i==JOptionPane.NO_OPTION)
-                                //Do Nothing
-                        //elseif(i==JOptionPane.CANCEL_OPTION)
-                                //
-                         
+			if(JOptionPane.showConfirmDialog(this, "Would Like To Save " +currentFile+
+                                " ?","Save",JOptionPane.YES_NO_CANCEL_OPTION)==JOptionPane.YES_OPTION)
+				saveFile(currentFile);
 					}
 	}
     
