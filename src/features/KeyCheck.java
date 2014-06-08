@@ -24,6 +24,7 @@ public class KeyCheck {
         keyEvents.add(KeyEvent.VK_RIGHT);
         keyEvents.add(KeyEvent.VK_LEFT);
         keyEvents.add(KeyEvent.VK_DOWN);
+        keyEvents.add(KeyEvent.VK_ESCAPE);
     }
     
     public int InvalidKeyCheck(KeyEvent e)
