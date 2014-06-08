@@ -7,6 +7,8 @@
 package gui;
 
 import features.JFontChooser;
+import features.KeyCheck;
+import features.search.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -19,13 +21,11 @@ import java.awt.event.KeyListener;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import static javafx.scene.text.Font.getFontNames;
 
 import javax.swing.*;
 import javax.swing.JFrame;
-import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
@@ -51,7 +51,9 @@ public class MainWindow extends JFrame{
     private String currentFile;
     private String fileName = "Untitled";
     private String currentFont = Font.MONOSPACED;
-    List<String> font_list;
+    private boolean usedSearch = false;
+    KeyCheck keychecker = new KeyCheck();
+     
     
             
     private JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
@@ -68,7 +70,7 @@ public class MainWindow extends JFrame{
         
         setTitle("Misal IDE 1.0 - "+fileName);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        font_list = getFontNames();
+        
         
         JMB = new JMenuBar();
         setJMenuBar(JMB);
@@ -239,7 +241,18 @@ public class MainWindow extends JFrame{
     Action Find = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
                     
-                }
+                    String word = JOptionPane.showInputDialog(new MainWindow(),"","Find",PLAIN_MESSAGE);
+                     new WordSearcher(textArea,word);
+                    System.out.println(word);
+                    usedSearch = true;
+                  
+                    //after searching if any key is pressed then remove the highlights
+                    //Therefore Using THe KeyChek Class
+	};
+                   
+                    
+               
+                
     };
         
         Action ChangeFont = new AbstractAction(){
@@ -306,19 +319,35 @@ public class MainWindow extends JFrame{
                     
                 }
     };
-
+    
+    
     //----------------_End_Debug_--------------
+    
     private KeyListener k1 = new KeyAdapter()
 	{       
 		public void keyPressed(KeyEvent e)
 		{       
-                        
+                        int i  =keychecker.InvalidKeyCheck(e) ;
+                        if(i==0)
+                        {
 			changed = true;
 			Save.setEnabled(true);    //----MADE----
 			SaveAs.setEnabled(true);
                         
                         setTitle("Misal IDE 1.0 - *"+fileName);
-                }		
+                        
+                        //For Setting the Highlights over the font to normal
+                        
+                        
+                        if( usedSearch )
+                        {
+                                new WordSearcher(textArea,"");
+                                usedSearch = false;
+                            }
+                        }    
+                }
+                
+                
 	};
 	
     void createNewFile()
