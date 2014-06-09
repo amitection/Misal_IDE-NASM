@@ -21,7 +21,6 @@ import java.awt.event.KeyListener;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 import static javafx.scene.text.Font.getFontNames;
 
 import javax.swing.*;
@@ -369,7 +368,14 @@ public class MainWindow extends JFrame{
                                     {
                                         Find.actionPerformed(null);
                                     }
-                                    
+                                    else if(validShortcut == KeyEvent.VK_S)
+                                    {
+                                        Save.actionPerformed(null);
+                                    }
+                                    else if(validShortcut == KeyEvent.VK_O)
+                                    {
+                                        Open.actionPerformed(null);
+                                    }
                                 }
                         }
                         

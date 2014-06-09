@@ -32,6 +32,9 @@ public class KeyCheck {
         //for shortcuts
         CtrlPlusSomeKey = new ArrayList<KeyEvent>();
         CtrlPlusSomeKey.add(KeyEvent.VK_F);
+        CtrlPlusSomeKey.add(KeyEvent.VK_S);
+        CtrlPlusSomeKey.add(KeyEvent.VK_O);
+        
         
         
     }
