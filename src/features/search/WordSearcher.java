@@ -18,6 +18,9 @@ import javax.swing.text.JTextComponent;
  * @author amit
  */
 public class WordSearcher {
+    
+    protected JTextComponent comp;
+    protected Highlighter.HighlightPainter painter;
 
     public WordSearcher(JTextComponent comp) {
         this.comp = comp;
@@ -40,6 +43,7 @@ public class WordSearcher {
         Highlighter highlighter = comp.getHighlighter();
         // Remove any existing highlights for last word
         Highlighter.Highlight[] highlights = highlighter.getHighlights();
+       
         for (int i = 0; i < highlights.length; i++) {
             Highlighter.Highlight h = highlights[i];
             if (h.getPainter() instanceof UnderlineHighlighter.UnderlineHighlightPainter) {
@@ -61,8 +65,15 @@ public class WordSearcher {
         word = word.toLowerCase();
         int lastIndex = 0;
         int wordSize = word.length();
+        
+        //content.indexOf returns the index or position 'first' occurence(match)
+        //word = substring to be searched in content
+        //lastIndex = index(position) from which to start the search
         while ((lastIndex = content.indexOf(word, lastIndex)) != -1) {
             int endIndex = lastIndex + wordSize;
+            //if match occurs next position to start the search will be
+            // = postion till the search already been done + the size of the
+            //                                  of the word to be searched
             try {
                 highlighter.addHighlight(lastIndex, endIndex, painter);
             } catch (BadLocationException e) {
@@ -75,7 +86,6 @@ public class WordSearcher {
         }
         return firstOffset;
     }
-    protected JTextComponent comp;
-    protected Highlighter.HighlightPainter painter;
+    
 }
 

@@ -30,6 +30,7 @@ import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Element;
 
 /**
@@ -75,10 +76,20 @@ public class MainWindow extends JFrame{
         JMB = new JMenuBar();
         setJMenuBar(JMB);
         File = new JMenu("File");
+        File.setMnemonic(KeyEvent.VK_F);
+        
         Edit = new JMenu("Edit");
+        Edit.setMnemonic(KeyEvent.VK_E);
+        
         View = new JMenu("View");
+        View.setMnemonic(KeyEvent.VK_V);
+        
         RunMenu = new JMenu("Run");
+        RunMenu.setMnemonic(KeyEvent.VK_R);
+        
         DebugMenu = new JMenu("Debug");
+        DebugMenu.setMnemonic(KeyEvent.VK_D);
+        
         JMB.add(File);
         JMB.add(Edit);
         JMB.add(View);
@@ -220,20 +231,26 @@ public class MainWindow extends JFrame{
     
     
     //--------_Edit_---------------
+    
+    
     Action Cut = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
-                    
+                    DefaultEditorKit.CutAction cutAction = new DefaultEditorKit.CutAction();  
+                    cutAction.actionPerformed(e);
                 }
     };
     
     Action Copy = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
-                    
+                    DefaultEditorKit.CopyAction copyAction = new DefaultEditorKit.CopyAction();
+                    copyAction.actionPerformed(e);
                 }
     };
     
     Action Paste = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
+                    DefaultEditorKit.PasteAction pasteAction = new DefaultEditorKit.PasteAction();
+                    pasteAction.actionPerformed(e);
                     
                 }
     };
@@ -241,18 +258,13 @@ public class MainWindow extends JFrame{
     Action Find = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
                     
-                    String word = JOptionPane.showInputDialog(new MainWindow(),"","Find",PLAIN_MESSAGE);
-                     new WordSearcher(textArea,word);
-                    System.out.println(word);
-                    usedSearch = true;
+                            String word = JOptionPane.showInputDialog(new MainWindow(),"","Find",PLAIN_MESSAGE);
+                                new WordSearcher(textArea,word);
+                                usedSearch = true;
                   
                     //after searching if any key is pressed then remove the highlights
                     //Therefore Using THe KeyChek Class
-	};
-                   
-                    
-               
-                
+                }                   
     };
         
         Action ChangeFont = new AbstractAction(){
@@ -322,11 +334,11 @@ public class MainWindow extends JFrame{
     
     
     //----------------_End_Debug_--------------
-    
+   
     private KeyListener k1 = new KeyAdapter()
 	{       
 		public void keyPressed(KeyEvent e)
-		{       
+		{                           
                         int i  =keychecker.InvalidKeyCheck(e) ;
                         if(i==0)
                         {
@@ -344,7 +356,25 @@ public class MainWindow extends JFrame{
                                 new WordSearcher(textArea,"");
                                 usedSearch = false;
                             }
-                        }    
+                        
+                    //Shortcut Key Pressed Check
+                        
+                        if(e.isControlDown())
+                        {
+                         
+                        int validShortcut = keychecker.ValidateShortcut(e,new MainWindow());
+                             if(validShortcut != -1)
+                                {
+                                    if(validShortcut == KeyEvent.VK_F)
+                                    {
+                                        Find.actionPerformed(null);
+                                    }
+                                    
+                                }
+                        }
+                        
+                        }
+                        
                 }
                 
                 

@@ -11,7 +11,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import static javafx.scene.paint.Color.color;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
@@ -25,9 +24,19 @@ import javax.swing.text.View;
  * @author amit
  */
 class UnderlineHighlighter extends DefaultHighlighter {
+    
+    // Shared painter used for default highlighting
+    protected static final Highlighter.HighlightPainter sharedPainter = new UnderlineHighlightPainter(
+            null);
+    // Painter used for this highlighter
+    protected Highlighter.HighlightPainter painter;
 
     public UnderlineHighlighter(Color c) {
         painter = (c == null ? sharedPainter : new UnderlineHighlightPainter(c));
+        //if no colour is passed used the  default highter and pass it to the painter
+        //else create a new obj of UnderlineHighlighterPainter with the color and pass
+        //to the painter.
+        
     }
 
     // Convenience method to add a highlight with
@@ -89,9 +98,5 @@ class UnderlineHighlighter extends DefaultHighlighter {
         }
         protected Color color; // The color for the underline
     }
-    // Shared painter used for default highlighting
-    protected static final Highlighter.HighlightPainter sharedPainter = new UnderlineHighlightPainter(
-            null);
-    // Painter used for this highlighter
-    protected Highlighter.HighlightPainter painter;
+    
 }

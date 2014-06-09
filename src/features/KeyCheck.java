@@ -16,7 +16,10 @@ import java.util.List;
  */
 public class KeyCheck {
     
-    List keyEvents;
+    List keyEvents; 
+    
+    List CtrlPlusSomeKey; // checking for shortcuts key pressed
+    
     public KeyCheck()
     {
         keyEvents = new ArrayList<KeyEvent>();
@@ -25,7 +28,15 @@ public class KeyCheck {
         keyEvents.add(KeyEvent.VK_LEFT);
         keyEvents.add(KeyEvent.VK_DOWN);
         keyEvents.add(KeyEvent.VK_ESCAPE);
+        
+        //for shortcuts
+        CtrlPlusSomeKey = new ArrayList<KeyEvent>();
+        CtrlPlusSomeKey.add(KeyEvent.VK_F);
+        
+        
     }
+    
+  
     
     public int InvalidKeyCheck(KeyEvent e)
     {   
@@ -38,6 +49,16 @@ public class KeyCheck {
         
     }
     
+    public int ValidateShortcut(KeyEvent e,javax.swing.JFrame comp)
+    {
+        
+        if(CtrlPlusSomeKey.contains(e.getKeyCode()))
+        {   
+            return e.getKeyCode();
+        }
+        else
+            return -1;
+    }
     
-    
-}
+}           
+ 
