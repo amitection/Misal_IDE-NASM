@@ -192,7 +192,7 @@ public class MainWindow extends JFrame{
                     saveOld();
                     if(dialog.showOpenDialog(null)==JFileChooser.APPROVE_OPTION)
                     {   
-                        fileName = dialog.getSelectedFile().getName();
+                         fileName = dialog.getSelectedFile().getName();
                         currentFile = dialog.getSelectedFile().getAbsolutePath();
                         readInFile(currentFile);  
 		//passing the address(path) of the chosen file to readInFile Method.
