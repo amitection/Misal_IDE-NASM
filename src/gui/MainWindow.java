@@ -18,13 +18,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import static javafx.scene.text.Font.getFontNames;
 
 import javax.swing.*;
 import javax.swing.JFrame;
+import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
@@ -55,7 +59,7 @@ public class MainWindow extends JFrame{
     KeyCheck keychecker = new KeyCheck();
      
     
-            
+    private File file;       
     private JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
 	/*File choosers provide a GUI for navigating the file system, and then either choosing 
 	 	a file or directory from a list, or entering the name of a file or directory.
@@ -194,6 +198,7 @@ public class MainWindow extends JFrame{
                     {   
                          fileName = dialog.getSelectedFile().getName();
                         currentFile = dialog.getSelectedFile().getAbsolutePath();
+                        file=new File(currentFile);
                         readInFile(currentFile);  
 		//passing the address(path) of the chosen file to readInFile Method.
                     }
@@ -287,13 +292,13 @@ public class MainWindow extends JFrame{
     Action CompileProject = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
                     
-                    
+                    compileFile(file);
                 }
     };
     
     Action ExecProject = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
-                    
+                    run(file);
                 }
     };
 
@@ -418,6 +423,7 @@ public class MainWindow extends JFrame{
     private void saveFile(String filePath)
 	{
 		try{
+                        file = new File(filePath);
 			FileWriter w = new FileWriter(filePath);
 			textArea.write(w);
 			w.close();
@@ -437,7 +443,8 @@ public class MainWindow extends JFrame{
     //Overloading Save file Method
     private void saveFile(String filePath,String fName)
 	{
-		try{
+		try{    
+                        file = new File(filePath);
 			FileWriter w = new FileWriter(filePath);
 			textArea.write(w);
 			w.close();
@@ -492,6 +499,119 @@ public class MainWindow extends JFrame{
 			
 		}
 	}
+    
+    public void compileFile(File file)
+    {
+        try {
+            String fullName=file.getName();
+            String name;
+            int index=file.getName().lastIndexOf('.');
+            
+            if(index>0 && index<=file.getName().length()-2)
+                name=file.getName().substring(0, index);
+            else
+                name=file.getName();
+   
+            String dir1=file.getParent();
+            
+            String[] command = {"xterm","-e","nasm -f elf64 " + fullName};
+          
+           ProcessBuilder pb= new ProcessBuilder(command);
+           pb.directory(new File(dir1));
+           Process p=pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = reader.readLine();
+            while (line != null) {
+                System.out.println(line);
+                line = reader.readLine();
+            }
+            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            String Error;
+            while ((Error = stdError.readLine()) != null) {
+                System.out.println(Error);
+            }
+            while ((Error = stdInput.readLine()) != null) {
+                System.out.println(Error);
+            }
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+   
+    }
+    
+    public void run(File file)
+    {
+        try {
+            String fullName=file.getName();
+            String name;
+            int index=file.getName().lastIndexOf('.');
+            
+            if(index>0 && index<=file.getName().length()-2)
+                name=file.getName().substring(0, index);
+            else
+                name=file.getName();
+   
+            String dir1=file.getParent();
+          String obj= name+".o"; 
+          String[] command = {"xterm","-e","ld -o out " + obj};
+          System.out.print(command);
+           ProcessBuilder pb= new ProcessBuilder(command);
+           pb.directory(new File(dir1));
+           Process p=pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = reader.readLine();
+            while (line != null) {
+                System.out.println(line);
+                line = reader.readLine();
+            }
+            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            String Error;
+            while ((Error = stdError.readLine()) != null) {
+                System.out.println(Error);
+            }
+            while ((Error = stdInput.readLine()) != null) {
+                System.out.println(Error);
+            }
+            if(Error==null)
+                execution(dir1);
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void execution(String dir1)
+    {
+        try{
+                   String[] command = {"xterm","-e","./out"};
+           ProcessBuilder pb= new ProcessBuilder(command);
+           pb.directory(new File(dir1));
+           Process p=pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = reader.readLine();
+            while (line != null) {
+                System.out.println(line);
+                line = reader.readLine();
+            }
+            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            String Error;
+            while ((Error = stdError.readLine()) != null) {
+                System.out.println(Error);
+            }
+            while ((Error = stdInput.readLine()) != null) {
+                System.out.println(Error);
+            }
+          
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+    }
     
     public static void main(String args[])
     {
