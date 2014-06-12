@@ -7,7 +7,7 @@
 package features.search;
 
 import java.awt.Color;
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.Highlighter;
@@ -28,7 +28,7 @@ public class WordSearcher {
                 Color.yellow);
     }
     
-    public WordSearcher(JTextArea comp, String word)
+    public WordSearcher(JTextPane comp, String word)
     {
         this.comp = comp;
         this.painter = new UnderlineHighlighter.UnderlineHighlightPainter(Color.yellow);

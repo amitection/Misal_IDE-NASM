@@ -1,47 +1,67 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2014 Amit & Ravi
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
 package gui;
 
+import features.CompilerLinking;
 import features.JFontChooser;
 import features.KeyCheck;
+import features.KeyWordCheck;
 import features.search.*;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import static javafx.scene.text.Font.getFontNames;
-
+import java.io.PrintWriter;
+import static java.lang.System.out;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
-import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.plaf.metal.*;
+import javax.swing.plaf.multi.*;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Element;
-
 /**
  *
  * @author amit
  */
 public class MainWindow extends JFrame{
-    private JTextArea line_number, textArea;
+    private JTextPane line_number;
+    private JTextPane textArea;
     private JScrollPane textAreaScrollPane;
     private JMenuBar JMB;
     private JMenu File;
@@ -59,8 +79,11 @@ public class MainWindow extends JFrame{
     KeyCheck keychecker = new KeyCheck();
      
     
-    private File file;       
+    private File file; 
+    private String currentWord;
+    
     private JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
+    
 	/*File choosers provide a GUI for navigating the file system, and then either choosing 
 	 	a file or directory from a list, or entering the name of a file or directory.
 	 	To display a file chooser, you usually use the JFileChooser API to show a modal dialog*/
@@ -122,18 +145,24 @@ public class MainWindow extends JFrame{
         
         textAreaScrollPane = new JScrollPane();
         
-        line_number = new JTextArea("1");
+        //line_number = new JTextPane("1");
+        line_number = new JTextPane();
+        line_number.setText("1");
         line_number.setBackground(Color.GRAY);
         line_number.setForeground(Color.red);
-        line_number.setFont(new Font(currentFont,Font.CENTER_BASELINE,15));
+        line_number.setFont(new Font(currentFont,Font.PLAIN,15));
         
         this.add(line_number);
         line_number.setEditable(false);
+       
+    
+        textArea = new KeyWordCheck().addColorProperties();
+        //initialises the textArea with KeyWordChek class
         
-        textArea = new JTextArea();
-        textArea.setBackground(Color.darkGray);
+        //textArea.setBackground(Color.darkGray);
         textArea.setCaretColor(Color.GREEN);
-        textArea.setForeground(Color.WHITE);
+        //textArea.setForeground(Color.WHITE);
+        textArea.setMargin(new Insets(0,5,0,0));
         textArea.setFont(new Font(Font.MONOSPACED,Font.PLAIN,15));
         textArea.getDocument().addDocumentListener(new DocumentListener(){
         
@@ -143,7 +172,7 @@ public class MainWindow extends JFrame{
                 Element root = textArea.getDocument().getDefaultRootElement();
                 String text = "1" + System.getProperty("line.separator");
             
-            for(int i = 2; i < root.getElementIndex( caretPosition ) + 2; i++)
+               for(int i = 2; i < root.getElementIndex( caretPosition ) + 2; i++)
             {
 		text += i + System.getProperty("line.separator");
             }
@@ -165,8 +194,9 @@ public class MainWindow extends JFrame{
             }
             
         });
+                
         
-        textAreaScrollPane.getViewport().add(textArea,BorderLayout.CENTER);
+        textAreaScrollPane.getViewport().add(textArea,BorderLayout.SOUTH);
         textAreaScrollPane.setRowHeaderView(line_number);
         textAreaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         textAreaScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -292,13 +322,18 @@ public class MainWindow extends JFrame{
     Action CompileProject = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
                     
-                    compileFile(file);
+                    try{
+                        new CompilerLinking().compileFile(file);
+                    } catch (IOException ex) {
+                        Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
+                   
     };
     
     Action ExecProject = new AbstractAction(){
 		public void actionPerformed(ActionEvent e){
-                    run(file);
+                    new CompilerLinking().run(file);
                 }
     };
 
@@ -338,7 +373,7 @@ public class MainWindow extends JFrame{
     
     
     //----------------_End_Debug_--------------
-   
+    
     private KeyListener k1 = new KeyAdapter()
 	{       
 		public void keyPressed(KeyEvent e)
@@ -384,7 +419,7 @@ public class MainWindow extends JFrame{
                                 }
                         }
                         
-                        }
+                        }                        
                         
                 }
                 
@@ -401,6 +436,9 @@ public class MainWindow extends JFrame{
             fileName = "Untitled";
             setTitle("Misal IDE 1.0 - "+fileName);
             textArea.setText(null);
+            textArea.setText(";NOTE:Please Do Not Add System Exit Commands."
+                            +"\n"
+                            +";It Will Be Auto-Generated During Compile Time.");
 	}
 	else
 	{
@@ -482,7 +520,22 @@ public class MainWindow extends JFrame{
     private void readInFile(String filePath){
 		try{
 			FileReader r = new FileReader(filePath);
-			textArea.read(r,null);
+                        BufferedReader br = new BufferedReader(r);
+                        
+                        String buffer;
+                        textArea.setText(null);
+                        String s = br.readLine();
+                        buffer = s;
+                        do
+                        {
+                            s = br.readLine();
+                            if(s!=null)
+                              buffer =buffer +"\n"+s;
+                            
+                            
+                        }while(s!=null);
+                        
+                        textArea.setText(buffer);
 			//area is object of JTextArea. It is a multiline plain text area.
 			r.close();
 			currentFile = filePath;
@@ -499,120 +552,7 @@ public class MainWindow extends JFrame{
 			
 		}
 	}
-    
-    public void compileFile(File file)
-    {
-        try {
-            String fullName=file.getName();
-            String name;
-            int index=file.getName().lastIndexOf('.');
-            
-            if(index>0 && index<=file.getName().length()-2)
-                name=file.getName().substring(0, index);
-            else
-                name=file.getName();
-   
-            String dir1=file.getParent();
-            
-            String[] command = {"xterm","-e","nasm -f elf64 " + fullName};
-          
-           ProcessBuilder pb= new ProcessBuilder(command);
-           pb.directory(new File(dir1));
-           Process p=pb.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = reader.readLine();
-            while (line != null) {
-                System.out.println(line);
-                line = reader.readLine();
-            }
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-            String Error;
-            while ((Error = stdError.readLine()) != null) {
-                System.out.println(Error);
-            }
-            while ((Error = stdInput.readLine()) != null) {
-                System.out.println(Error);
-            }
-            p.waitFor();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-   
-    }
-    
-    public void run(File file)
-    {
-        try {
-            String fullName=file.getName();
-            String name;
-            int index=file.getName().lastIndexOf('.');
-            
-            if(index>0 && index<=file.getName().length()-2)
-                name=file.getName().substring(0, index);
-            else
-                name=file.getName();
-   
-            String dir1=file.getParent();
-          String obj= name+".o"; 
-          String[] command = {"xterm","-e","ld -o out " + obj};
-          System.out.print(command);
-           ProcessBuilder pb= new ProcessBuilder(command);
-           pb.directory(new File(dir1));
-           Process p=pb.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = reader.readLine();
-            while (line != null) {
-                System.out.println(line);
-                line = reader.readLine();
-            }
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-            String Error;
-            while ((Error = stdError.readLine()) != null) {
-                System.out.println(Error);
-            }
-            while ((Error = stdInput.readLine()) != null) {
-                System.out.println(Error);
-            }
-            if(Error==null)
-                execution(dir1);
-            p.waitFor();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    public void execution(String dir1)
-    {
-        try{
-                   String[] command = {"xterm","-e","./out"};
-           ProcessBuilder pb= new ProcessBuilder(command);
-           pb.directory(new File(dir1));
-           Process p=pb.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = reader.readLine();
-            while (line != null) {
-                System.out.println(line);
-                line = reader.readLine();
-            }
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-            String Error;
-            while ((Error = stdError.readLine()) != null) {
-                System.out.println(Error);
-            }
-            while ((Error = stdInput.readLine()) != null) {
-                System.out.println(Error);
-            }
-          
-            p.waitFor();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-    }
-    
+     
     public static void main(String args[])
     {
         try {
